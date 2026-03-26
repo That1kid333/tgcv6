@@ -1,0 +1,25 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow read/write access to all documents to any user signed in to the app
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Allow users to read/write their own messages
+    match /messages/{messageId} {
+      allow read, write: if request.auth != null && request.auth.uid == resource.data.senderId;
+    }
+    
+    // Allow users to read/write their own bookings
+    match /bookings/{bookingId} {
+      allow read, write: if request.auth != null && request.auth.uid == resource.data.riderId || request.auth.uid == resource.data.driverId;
+    }
+
+    // Allow users to access their own QR codes
+    match /drivers/{driverId} {
+      allow read: if request.auth != null && request.auth.uid == driverId;
+      allow write: if request.auth != null && request.auth.uid == driverId;
+    }
+  }
+}
